@@ -1,0 +1,20 @@
+{
+  "name": "udp-project-cs330",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "UDP Server project for CS330",
+  "main": "receiver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zRakan/UDP-Project-CS330.git"
+  },
+  "author": "zRakan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zRakan/UDP-Project-CS330/issues"
+  },
+  "homepage": "https://github.com/zRakan/UDP-Project-CS330#readme"
+}
