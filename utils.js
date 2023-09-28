@@ -42,3 +42,31 @@ export async function readFile(filePath) {
             terminate('File/Directory not found. Process terminated')
     }
 }
+
+/**
+ * 
+ * @param {Buffer} buffer - Buffer of file content 
+ * @returns {Buffer[]} Chunks of buffers
+ */
+export function splitFile(buffer) {
+    let bufferChunks = []; // Buffer chunks [Max-size: 500 bytes]
+
+    console.log(`File splitter:
+Current file size: ${buffer.byteLength}`)
+
+    let currentChunk = 0;
+    while(true) {
+        const chunk = Buffer.from(buffer).subarray(currentChunk * 500, ((currentChunk+1) * 500));
+        bufferChunks.push(chunk); // Push the chunk
+        
+        console.log(`#${currentChunk+1} Chunk: ${chunk.byteLength} bytes`);
+
+        // Increase the chunk
+        currentChunk++;
+        
+        // Break the loop if the chunk is lower than 500 bytes
+        if(chunk.byteLength < 500) break; 
+    }
+
+    return bufferChunks;
+}
