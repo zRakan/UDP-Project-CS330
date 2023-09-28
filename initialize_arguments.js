@@ -1,4 +1,4 @@
-import { terminate, checkIpAddress } from './utils.js';
+import { terminate, checkIpAddress, log } from './utils.js';
 
 
 export default function(process_args) {
@@ -54,9 +54,13 @@ export default function(process_args) {
     }
 
     // Check if arguments is specified
-    if(!argsValues.IP) terminate('--ip not specified. Process terminated');
-    if(!argsValues.PORT) terminate('--port not specified. Process terminated');
+    if(!argsValues.IP)
+        log('--ip not specified. will use IP: 0.0.0.0');
+
+    if(!argsValues.PORT)
+        log('--port not specified. will use PORT: 6000');
+
     if(!argsValues.filePath) terminate('--file not specified. Process terminated');
 
-    return [argsValues.IP, argsValues.PORT, argsValues.filePath]
+    return [argsValues.IP || '0.0.0.0', argsValues.PORT || '6000', argsValues.filePath]
 }
