@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/zRakan/UDP-Project-CS330/issues"
   },
-  "homepage": "https://github.com/zRakan/UDP-Project-CS330#readme"
+  "homepage": "https://github.com/zRakan/UDP-Project-CS330#readme",
+  "dependencies": {
+    "fs": "^0.0.1-security"
+  }
 }
