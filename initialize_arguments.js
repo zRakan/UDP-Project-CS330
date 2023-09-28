@@ -55,10 +55,10 @@ export default function(process_args) {
 
     // Check if arguments is specified
     if(!argsValues.IP)
-        log('--ip not specified. will use IP: 0.0.0.0');
+        log('Client', '--ip not specified. will use IP: 0.0.0.0');
 
     if(!argsValues.PORT)
-        log('--port not specified. will use PORT: 6000');
+        log('Client', '--port not specified. will use PORT: 6000');
 
     if(!argsValues.filePath) terminate('--file not specified. Process terminated');
 
