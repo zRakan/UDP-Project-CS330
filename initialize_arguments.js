@@ -1,8 +1,7 @@
 import { terminate, checkIpAddress, log } from './utils.js';
 
-
+let argsValues = {};
 export default function(process_args) {
-    let argsValues = {};
 
     for(let i = 0; i < process_args.length; i+=2) {
         const currentCommand = process_args[i]; // Display arguments (Debugging)
@@ -46,7 +45,7 @@ export default function(process_args) {
     
         --file 'filePath'
     
-        Usage: sender.js --ip 0.0.0.0 --port 6000 --file 'filePath'
+        Usage: sender.js --ip 0.0.0.0 --port 6500 --file 'filePath'
     `);
             default:
                 terminate(`${currentCommand} is invalid. Process terminated`);
@@ -58,9 +57,9 @@ export default function(process_args) {
         log('Client', '--ip not specified. will use IP: 0.0.0.0');
 
     if(!argsValues.PORT)
-        log('Client', '--port not specified. will use PORT: 6000');
+        log('Client', '--port not specified. will use PORT: 6500');
 
     if(!argsValues.filePath) terminate('--file not specified. Process terminated');
 
-    return [argsValues.IP || '0.0.0.0', argsValues.PORT || '6000', argsValues.filePath]
+    return [argsValues.IP || '0.0.0.0', argsValues.PORT || '6500', argsValues.filePath]
 }
