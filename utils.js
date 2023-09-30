@@ -1,5 +1,7 @@
 import fs from 'fs/promises';
+import { createWriteStream } from 'fs'
 
+import { createPacket } from "./packet.js";
 
 /**
  * Create a message in terminal
@@ -28,6 +30,21 @@ export function checkIpAddress(ip) {
     return (/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/gi).test(ip);
 }
 
+/* Writing uploaded file */
+let fileStream;
+export function startStream(fileName) {
+    fileStream = createWriteStream(`./uploadedFiles/${fileName}`, {flags: 'w'});
+}
+
+export function writingStream(buffer) {
+    fileStream.write(buffer);
+}
+
+export function closeStream() {
+    fileStream.end();
+}
+
+
 /**
  * 
  * @param {} filePath 
@@ -50,16 +67,24 @@ export async function readFile(filePath) {
  */
 export function splitFile(buffer) {
     let bufferChunks = []; // Buffer chunks [Max-size: 500 bytes]
+    //createPacket(1, buffer);
+
 
     console.log(`File splitter:
 Current file size: ${buffer.byteLength}`)
 
     let currentChunk = 0;
     while(true) {
-        const chunk = Buffer.from(buffer).subarray(currentChunk * 500, ((currentChunk+1) * 500));
-        bufferChunks.push(chunk); // Push the chunk
+        let chunk = Buffer.from(buffer).subarray(currentChunk * 491, ((currentChunk+1) * 491));
+        let seqN;
+
+        const isLastChunk = chunk.byteLength < 491;
         
-        console.log(`#${currentChunk+1} Chunk: ${chunk.byteLength} bytes`);
+        [seqN, chunk] = createPacket(0x01, chunk, isLastChunk ? 2 : 0);
+
+        bufferChunks.push({ seqN, chunk }); // Push the sequenceNumber, chunk
+        
+        //console.log(`#${currentChunk+1} Chunk: ${chunk.byteLength} bytes`);
 
         // Increase the chunk
         currentChunk++;
@@ -69,4 +94,21 @@ Current file size: ${buffer.byteLength}`)
     }
 
     return bufferChunks;
+}
+
+
+export function formatBytes(bytes) {
+    if (!+bytes) return '0 Bytes';
+
+    const k = 1024;
+    const dm = 2;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
+}
+
+export async function wait(ms) {
+    await new Promise(resolve => setTimeout(resolve, ms));
 }
