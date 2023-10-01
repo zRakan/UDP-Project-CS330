@@ -25,15 +25,18 @@ server.on('error', function(err) {
 
 server.on('message', function(message, rInfo) {
     const messageHeader = message.subarray(0, 9);
+
     const messageContent = message.subarray(9);
 
     const packetType = messageHeader[0];
-    const packetSequence = messageHeader.subarray(3, 7);
+    const packetSize = messageHeader.subarray(1, 3).readInt16BE(0);
+    const packetSequence = messageHeader.subarray(3, 8).readInt16LE(0);
 
     utils.log('Server', `
         Packet Received:
             IP: ${rInfo.address}:${rInfo.port} [${rInfo.family}]
-            Packet Type: ${packetType == 0x01 ? 'Data Packet' : 'Handshaking Packet'} ${packetType == 0x01 && (`(Seq #: ${packetSequence.readInt16LE(0)})`)}
+            Packet Type: ${packetType == 0x01 ? 'Data Packet' : 'Handshaking Packet'} ${packetType == 0x01 ? `(Seq #: ${packetSequence})` : ''}
+            Packet Size: ${packetSize} bytes
 
     `);
 
@@ -59,8 +62,6 @@ server.on('message', function(message, rInfo) {
                 utils.startStream(fileName);
 
             } else {
-                console.log("Writing process...");
-
                 utils.writingStream(messageContent); // Writing stream file
 
                 if(dataType == 0x02) { // Stop writing stream file
@@ -76,7 +77,6 @@ server.on('message', function(message, rInfo) {
             break;
         case 0x03: // Handshake
             server.send(Buffer.from([0x03, 0x05]), rInfo.port, rInfo.address); 
-            console.log("Test");
             break;
     }
 });

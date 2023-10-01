@@ -41,8 +41,6 @@ export function createPacket(type, buffer = Buffer.alloc(0), dataType) {
     if(type == 0x01) {
         seqN = getSeq();
         headerPacket[8] = dataType;
-
-        console.log("Data Packet");
     }
 
     // Set Header of packet
