@@ -82,7 +82,7 @@ Current file size: ${buffer.byteLength}`)
         
         [seqN, chunk] = createPacket(0x01, chunk, isLastChunk ? 2 : 0);
 
-        bufferChunks.push({ seqN, chunk }); // Push the sequenceNumber, chunk
+        bufferChunks.push({ seqN, packet: chunk }); // Push the sequenceNumber, chunk
         
         //console.log(`#${currentChunk+1} Chunk: ${chunk.byteLength} bytes`);
 

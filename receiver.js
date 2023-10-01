@@ -29,22 +29,21 @@ server.on('message', function(message, rInfo) {
     const messageContent = message.subarray(9);
 
     const packetType = messageHeader[0];
+    const dataType = messageHeader[8]; // This will only be used in "Data packet"
+
     const packetSize = messageHeader.subarray(1, 3).readInt16BE(0);
     const packetSequence = messageHeader.subarray(3, 8).readInt16LE(0);
 
     utils.log('Server', `
         Packet Received:
             IP: ${rInfo.address}:${rInfo.port} [${rInfo.family}]
-            Packet Type: ${packetType == 0x01 ? 'Data Packet' : 'Handshaking Packet'} ${packetType == 0x01 ? `(Seq #: ${packetSequence})` : ''}
+            Packet Type: ${packetType == 0x01 ? `Data Packet ${dataType == 0x01 ? '(Metadata)' : ''}` : 'Handshaking Packet'} ${packetType == 0x01 ? `(Seq #: ${packetSequence})` : ''}
             Packet Size: ${packetSize} bytes
 
     `);
 
     switch(packetType) { // Packet types
         case 0x01: // Data
-            const dataType = messageHeader[8];
-            
-
             if(dataType == 0x01) { // Metadata of file
                 const fileName_OFFSET = messageContent.indexOf('__FILENAME__');
                 const fileSize_OFFSET = messageContent.indexOf('__FILESIZE__');
