@@ -32,22 +32,34 @@ export function checkIpAddress(ip) {
 
 /* Writing uploaded file */
 let fileStream;
+
+/**
+ * Creating file stream pipe
+ * @param {String} fileName - Streamed filename 
+ */
 export function startStream(fileName) {
     fileStream = createWriteStream(`./uploadedFiles/${fileName}`, {flags: 'w'});
 }
 
+/**
+ * Writing on stream pipe
+ * @param {Buffer} buffer - Buffer of the content 
+ */
 export function writingStream(buffer) {
     fileStream.write(buffer);
 }
 
+/**
+ * Closing the stream pipe
+ */
 export function closeStream() {
     fileStream.end();
 }
 
 
 /**
- * 
- * @param {} filePath 
+ * Reading the file based on command-line arguments
+ * @param {String} filePath - Directory of the file 
  * @returns {Buffer<Promise>} File content as buffer
  */
 export async function readFile(filePath) {
@@ -61,7 +73,7 @@ export async function readFile(filePath) {
 }
 
 /**
- * 
+ * Splitting the content of the file into chunks of buffers
  * @param {Buffer} buffer - Buffer of file content 
  * @returns {Buffer[]} Chunks of buffers
  */
@@ -96,7 +108,11 @@ Current file size: ${buffer.byteLength}`)
     return bufferChunks;
 }
 
-
+/**
+ * Formatting bytes into proper size(s)
+ * @param {Integer} bytes - Bytes number 
+ * @returns {String} formatted bytes
+ */
 export function formatBytes(bytes) {
     if (!+bytes) return '0 Bytes';
 
@@ -109,6 +125,10 @@ export function formatBytes(bytes) {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
 }
 
+/**
+ * Sleep/Wait function utility
+ * @param {Integer} ms - Waiting for ms 
+ */
 export async function wait(ms) {
     await new Promise(resolve => setTimeout(resolve, ms));
 }
