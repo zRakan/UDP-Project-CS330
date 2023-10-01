@@ -119,3 +119,5 @@ for(let currentPacket of packetList) {
     }
 }
 
+// [TESTING] Sending duplicated packet
+//client.send(Buffer.from([0x01, 0x00, 0x32, 0x05, 0x00, 0x00, 0x00, 0x00, 0x01]), rPORT, IP);

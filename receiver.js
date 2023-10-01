@@ -22,6 +22,7 @@ server.on('error', function(err) {
 
 
 // Receive message(s) from client
+let processedPackets = {};
 
 server.on('message', function(message, rInfo) {
     const messageHeader = message.subarray(0, 9);
@@ -41,6 +42,11 @@ server.on('message', function(message, rInfo) {
             Packet Size: ${packetSize} bytes
 
     `);
+
+    if(processedPackets[packetSequence]) { // if duplicated packet
+        utils.log('Server', 'Packet is duplicated');
+        return;
+    }
 
     switch(packetType) { // Packet types
         case 0x01: // Data
@@ -72,6 +78,7 @@ server.on('message', function(message, rInfo) {
 
             // Sending Acknoledgment packet
             server.send(createPacket(0x02), rInfo.port, rInfo.address);
+            processedPackets[packetSequence] = true; // This sequence ID has been processed
 
             break;
         case 0x03: // Handshake
