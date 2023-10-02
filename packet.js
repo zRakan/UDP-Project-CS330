@@ -38,10 +38,11 @@ export function createPacket(type, buffer = Buffer.alloc(0), dataType) {
     const headerPacket = Buffer.alloc(headerSize);
     let seqN;
 
-    if(type == 0x01) {
+    if(type == 0x01) { // Data packet
         seqN = getSeq();
         headerPacket[8] = dataType;
-    }
+    } else if(type == 0x02) // Acnkowledgement Packet
+        seqN = dataType // Set seq based on sender packet
 
     // Set Header of packet
     headerPacket[0] = type; // Type of packet [Data, Ack, Handshaking]

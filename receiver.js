@@ -77,7 +77,8 @@ server.on('message', function(message, rInfo) {
 
 
             // Sending Acknoledgment packet
-            server.send(createPacket(0x02), rInfo.port, rInfo.address);
+            const [ackN, acknoledgmentPacket] = createPacket(0x02, Buffer.alloc(0), packetSequence)
+            server.send(acknoledgmentPacket, rInfo.port, rInfo.address);
             processedPackets[packetSequence] = true; // This sequence ID has been processed
 
             break;
