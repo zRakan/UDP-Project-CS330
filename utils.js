@@ -83,7 +83,7 @@ export function splitFile(buffer) {
 
 
     console.log(`File splitter:
-Current file size: ${buffer.byteLength}`)
+Current file size: ${buffer.byteLength} bytes`)
 
     let currentChunk = 0;
     while(true) {
@@ -131,4 +131,10 @@ export function formatBytes(bytes) {
  */
 export async function wait(ms) {
     await new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function randomNumber(min = 0, max = 1000) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
