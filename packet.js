@@ -23,15 +23,18 @@ function getACK() {
  * @returns {Buffer} Packet header & packet data
  */
 
-/* Packet Header
-Packet types[0] = [0x01, 0x02, 0x03]
-		        [Data, Ack, HandShaking]
+/* 
+Packet structure: [ Packet Header(Fixed size 9) | Packet Content(Variable size) ]
 
-Packet size[1,2] = [0...500]
-Packet seq[3, 7] = [0...65535]
+Structure of Packet Header
+    Packet types[0] = [0x01, 0x02, 0x03]
+                      [Data, Ack, HandShaking]
 
-Packet dataType[8] = [0x00, 0x01, 0x02]
-		             [noop, Metadata, end]
+    Packet size[1,2] = [0...500]
+    Packet seq[3, 7] = [0...65535]
+
+    Packet dataType[8] = [0x00, 0x01, 0x02]
+                         [noop, Metadata, end]
 */
 const headerSize = 9; // Header size
 export function createPacket(type, buffer = Buffer.alloc(0), dataType) {
