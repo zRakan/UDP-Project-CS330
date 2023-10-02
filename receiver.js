@@ -22,19 +22,20 @@ server.on('error', function(err) {
 
 
 // Receive message(s) from client
-let processedPackets = {};
+let processedPackets = {}; // Contains all processed packets { seqN: true|false }
 
-server.on('message', function(message, rInfo) {
-    const messageHeader = message.subarray(0, 9);
+server.on('message', function(message, rInfo) { // Event that triggered if there is a message from sender    
+    const messageHeader = message.subarray(0, 9); // Packet header
 
-    const messageContent = message.subarray(9);
+    const messageContent = message.subarray(9); // Packet content
 
-    const packetType = messageHeader[0];
-    const dataType = messageHeader[8]; // This will only be used in "Data packet"
+    const packetType = messageHeader[0]; // Packet type [0x01, 0x02, 0x03] [Data, Ack, Handshake]
+    const dataType = messageHeader[8]; // This will only be used in "Data packet" (Metadata || Content)
 
-    const packetSize = messageHeader.subarray(1, 3).readInt16BE(0);
-    const packetSequence = messageHeader.subarray(3, 8).readInt16LE(0);
+    const packetSize = messageHeader.subarray(1, 3).readInt16BE(0); // Packet Size (Big-Endian)
+    const packetSequence = messageHeader.subarray(3, 8).readInt16LE(0); // Packet sequence (Little-Endian)
 
+    // Display Packet information
     utils.log('Server', `
         Packet Received:
             IP: ${rInfo.address}:${rInfo.port} [${rInfo.family}]
@@ -49,14 +50,15 @@ server.on('message', function(message, rInfo) {
     }
 
     switch(packetType) { // Packet types
-        case 0x01: // Data
+        case 0x01: // Data Packet
             if(dataType == 0x01) { // Metadata of file
-                const fileName_OFFSET = messageContent.indexOf('__FILENAME__');
-                const fileSize_OFFSET = messageContent.indexOf('__FILESIZE__');
+                const fileName_OFFSET = messageContent.indexOf('__FILENAME__'); // Getting the OFFSET of fileName
+                const fileSize_OFFSET = messageContent.indexOf('__FILESIZE__'); // Getting the OFFSET of fileSize
 
-                const fileName = messageContent.subarray(fileName_OFFSET+12, fileSize_OFFSET).toString('utf8');
-                const fileSize = messageContent.subarray(fileSize_OFFSET+12).toString('utf8');
+                const fileName = messageContent.subarray(fileName_OFFSET+12, fileSize_OFFSET).toString('utf8'); // Getting the file name
+                const fileSize = messageContent.subarray(fileSize_OFFSET+12).toString('utf8'); // Getting the file size
 
+                // Display File metadata
                 utils.log('Server', `
         File Metadata:
             File name: ${fileName}
@@ -71,19 +73,21 @@ server.on('message', function(message, rInfo) {
 
                 if(dataType == 0x02) { // Stop writing stream file
                     utils.closeStream();
-                    utils.log('Server', 'Finished uploading ')
+                    utils.log('Server', 'Finished uploading')
                 }
             }
 
 
             // Sending Acknoledgment packet
-            const [ackN, acknoledgmentPacket] = createPacket(0x02, Buffer.alloc(0), packetSequence)
-            server.send(acknoledgmentPacket, rInfo.port, rInfo.address);
+            const [ackN, acknoledgmentPacket] = createPacket(0x02, Buffer.alloc(0), packetSequence) // Creating ACK packet
+            server.send(acknoledgmentPacket, rInfo.port, rInfo.address); // Sending the packet to sender
             processedPackets[packetSequence] = true; // This sequence ID has been processed
 
             break;
         case 0x03: // Handshake
-            server.send(Buffer.from([0x03, 0x05]), rInfo.port, rInfo.address); 
+            const initialSeq = utils.randomNumber(); // Random number [0, 1000]
+            const handshakeBuffer = Buffer.from([0x03, initialSeq]); // 0x03 == Handshake Packet type 
+            server.send(handshakeBuffer, rInfo.port, rInfo.address); // Send Handshake Packet to sender
             break;
     }
 });
