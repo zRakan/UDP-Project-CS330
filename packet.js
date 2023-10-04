@@ -31,7 +31,7 @@ Structure of Packet Header
                       [Data, Ack, HandShaking]
 
     Packet size[1,2] = [0...500]
-    Packet seq[3, 7] = [0...65535]
+    Packet seq[3, 7] = [0x00...0xFFFFFFFFFF]
 
     Packet dataType[8] = [0x00, 0x01, 0x02]
                          [noop, Metadata, end]
