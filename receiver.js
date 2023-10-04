@@ -73,7 +73,9 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
 
                 if(dataType == 0x02) { // Stop writing stream file
                     utils.closeStream();
-                    utils.log('Server', 'Finished uploading')
+                    utils.log('Server', 'Finished uploading');
+                    
+                    processedPackets = {}; // Reset processed packets
                 }
             }
 
