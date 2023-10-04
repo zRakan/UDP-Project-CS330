@@ -38,7 +38,7 @@ let fileStream;
  * @param {String} fileName - Streamed filename 
  */
 export function startStream(fileName) {
-    fileStream = createWriteStream(`./uploadedFiles/${fileName}`, {flags: 'w'});
+    fileStream = createWriteStream(`./uploadedFiles/${randomStr(6)}-${fileName}`, {flags: 'w'});
 }
 
 /**
@@ -133,8 +133,33 @@ export async function wait(ms) {
     await new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/**
+ * Create an inclusive random number 
+ * @param {Integer} min - Minimum number
+ * @param {Integer} max - Maximum number
+ * @returns {Integer} An integer between min & max
+ */
 export function randomNumber(min = 0, max = 1000) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
+ * Create a random string based on specified length
+ * @param {Integer} length - Length of string 
+ * @returns {String} String contains random letters&numbers
+ */
+function randomStr(length) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    let counter = 0;
+
+    while (counter < length) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        counter++;
+    }
+
+    return result;
 }
