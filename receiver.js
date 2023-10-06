@@ -24,6 +24,9 @@ server.on('error', function(err) {
 // Receive message(s) from client
 let processedPackets = {}; // Contains all processed packets { seqN: true|false }
 
+// Statistics
+let delay;
+
 server.on('message', function(message, rInfo) { // Event that triggered if there is a message from sender    
     const messageHeader = message.subarray(0, 9); // Packet header
 
@@ -51,6 +54,9 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
 
     switch(packetType) { // Packet types
         case 0x01: // Data Packet
+            if(!delay)
+                delay = new Date();
+
             if(dataType == 0x01) { // Metadata of file
                 const fileName_OFFSET = messageContent.indexOf('__FILENAME__'); // Getting the OFFSET of fileName
                 const fileSize_OFFSET = messageContent.indexOf('__FILESIZE__'); // Getting the OFFSET of fileSize
@@ -73,9 +79,16 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
 
                 if(dataType == 0x02) { // Stop writing stream file
                     utils.closeStream();
-                    utils.log('Server', 'Finished uploading');
+                    
+                    // Display Finished
+                    utils.log('Server', `Finished uploading
+                        Statistics:
+                            Throughput: <>
+                            Delay: ${(new Date().getTime() - delay.getTime()) / 1000} second(s)
+                    `)
                     
                     processedPackets = {}; // Reset processed packets
+                    delay = null; // Reset delay
                 }
             }
 
