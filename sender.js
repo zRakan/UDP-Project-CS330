@@ -22,7 +22,7 @@ const PORT = 6000; // Client PORT
 const client = UDP.createSocket('udp4'); // Creating socket
 
 // Receive messages from Receiver [ACKs, Handshake]
-let receivedAck = true; // Acknowledgment received or not
+let receivedAck = {}; // Acknowledgment received or not
 let isAccepted = false; // Handshake acception
 
 client.on('message', function(message, rInfo) { // Message event (This event will get all resposnes from receiver)
@@ -38,7 +38,7 @@ client.on('message', function(message, rInfo) { // Message event (This event wil
             const packetSequence = message.subarray(3, 8).readInt16LE(0); // Reading packet sequence numer by Little-endian
 
             log('Client', `Received ACK${packetSequence} packet`);
-            receivedAck = true;
+            receivedAck[packetSequence] = true;
             break;
 
         case 0x03: // Handshake
@@ -106,16 +106,15 @@ while(!receivedAck) {
 const packetList = [{ seqN: seq, packet: metadataPacket }, ...splitFile(fileContent)];
 for(let currentPacket of packetList) {
     client.send(currentPacket.packet, rPORT, IP);
-    receivedAck = false;
 
    setTimeout(function() {
-        if(receivedAck) return; // Ignore if received ACK
+        if(receivedAck[currentPacket.seqN]) return; // Ignore if received ACK
         client.send(currentPacket.packet, rPORT, IP); // Re-transmission the packet
-        log('Client', 'Re-trasmitted a packet...')
+        log('Client', `Re-trasmitted #${currentPacket.seqN} packet...`)
 
     }, 1000);
 
-    while(!receivedAck) { // Waiting until acknowledgment packet received
+    while(!receivedAck[currentPacket.seqN]) { // Waiting until acknowledgment packet received
         log('Client', `Waiting for Acknowledgment ${currentPacket.seqN}...`);
         await wait(0);
     }

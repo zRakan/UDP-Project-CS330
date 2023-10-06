@@ -96,7 +96,9 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
             // Sending Acknoledgment packet
             const [ackN, acknoledgmentPacket] = createPacket(0x02, Buffer.alloc(0), packetSequence) // Creating ACK packet
             server.send(acknoledgmentPacket, rInfo.port, rInfo.address); // Sending the packet to sender
-            processedPackets[packetSequence] = true; // This sequence ID has been processed
+            
+            if(delay) // Don't process packet unless it's during transmission
+                processedPackets[packetSequence] = true; // This sequence ID has been processed
 
             break;
         case 0x03: // Handshake
