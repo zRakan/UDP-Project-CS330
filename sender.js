@@ -107,17 +107,16 @@ const packetList = [{ seqN: seq, packet: metadataPacket }, ...splitFile(fileCont
 for(let currentPacket of packetList) {
     client.send(currentPacket.packet, rPORT, IP);
 
-   setTimeout(function() {
-        if(receivedAck[currentPacket.seqN]) return; // Ignore if received ACK
+   const interval = setInterval(function() {
+        if(receivedAck[currentPacket.seqN]) return clearInterval(interval); // Ignore if received ACK
         client.send(currentPacket.packet, rPORT, IP); // Re-transmission the packet
         log('Client', `Re-trasmitted #${currentPacket.seqN} packet...`)
 
     }, 1000);
 
-    while(!receivedAck[currentPacket.seqN]) { // Waiting until acknowledgment packet received
-        log('Client', `Waiting for Acknowledgment ${currentPacket.seqN}...`);
+    if(!receivedAck[currentPacket.seqN]) log('Client', `Waiting for Acknowledgment ${currentPacket.seqN}...`);
+    while(!receivedAck[currentPacket.seqN]) // Waiting until acknowledgment packet received
         await wait(0);
-    }
 }
 
 /*

@@ -51,11 +51,15 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
     if(processedPackets[packetSequence]) // if duplicated packet
         return utils.log('Server', 'Packet is duplicated');
 
-    // Increase number of sent packets
-    numberOfPackets++;
-
     switch(packetType) { // Packet types
         case 0x01: // Data Packet
+            // Unreliable channel (probability)
+            if(Math.random() <= 0.1)
+                return utils.log('Server', `Packet #${packetSequence} is dropped...`)
+
+            // Increase number of sent packets
+            numberOfPackets++;
+
             if(!delay)
                 delay = new Date();
 
@@ -87,7 +91,7 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
                     // Display Finished
                     utils.log('Server', `Finished uploading
     Statistics:
-        Throughput: ${numberOfPackets / seconds}/seconds [Sent: ${numberOfPackets} packet(s)]
+        Throughput: ${(numberOfPackets / seconds).toFixed(2)} packets per second [Sent: ${numberOfPackets} packet(s)]
         Delay: ${seconds} second(s)
 `)
                     
