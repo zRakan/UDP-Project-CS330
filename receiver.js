@@ -26,6 +26,7 @@ let processedPackets = {}; // Contains all processed packets { seqN: true|false 
 
 // Statistics
 let delay;
+let numberOfPackets = 0;
 
 server.on('message', function(message, rInfo) { // Event that triggered if there is a message from sender    
     const messageHeader = message.subarray(0, 9); // Packet header
@@ -47,10 +48,11 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
 
     `);
 
-    if(processedPackets[packetSequence]) { // if duplicated packet
-        utils.log('Server', 'Packet is duplicated');
-        return;
-    }
+    if(processedPackets[packetSequence]) // if duplicated packet
+        return utils.log('Server', 'Packet is duplicated');
+
+    // Increase number of sent packets
+    numberOfPackets++;
 
     switch(packetType) { // Packet types
         case 0x01: // Data Packet
@@ -79,16 +81,19 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
 
                 if(dataType == 0x02) { // Stop writing stream file
                     utils.closeStream();
+                    const seconds = (new Date().getTime() - delay.getTime()) / 1000;
                     
+
                     // Display Finished
                     utils.log('Server', `Finished uploading
-                        Statistics:
-                            Throughput: <>
-                            Delay: ${(new Date().getTime() - delay.getTime()) / 1000} second(s)
-                    `)
+    Statistics:
+        Throughput: ${numberOfPackets / seconds}/seconds [Sent: ${numberOfPackets} packet(s)]
+        Delay: ${seconds} second(s)
+`)
                     
                     processedPackets = {}; // Reset processed packets
                     delay = null; // Reset delay
+                    numberOfPackets = 0; // Reset packets counter
                 }
             }
 
