@@ -25,10 +25,10 @@ size 500 bytes) for transmission.
 ~~9. **CLI Arguments**:~~ The sender should be capable of specifying the receiver's IP address, port number, and the file to be 
 sent through command-line arguments.
 
-10. **Statistics**: Your code should output statistics like throughput and delay during or after the file transfer.
+~~10. **Statistics**:~~ Your code should output statistics like throughput and delay during or after the file transfer.
 
 * In addition, you **much choose one** of the following:
-1. **Unreliable Channel**: Simulate an unreliable channel by introducing packet loss. Packets should be 
+~~1. **Unreliable Channel**:~~ Simulate an unreliable channel by introducing packet loss. Packets should be 
 randomly dropped based on given probabilities (p=0.1, 0.3, 0.6).
 
 2. **Sliding Window Protocol**: Implement a sliding window protocol for flow control with a maximum 
