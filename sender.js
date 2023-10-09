@@ -27,7 +27,7 @@ let isAccepted = false; // Handshake acception
 
 client.on('message', function(message, rInfo) { // Message event (This event will get all resposnes from receiver)
     log('Client', `
-    Message Received:
+    Packet Received:
         IP: ${rInfo.address}:${rInfo.port} [${rInfo.family}]
 `);
 
