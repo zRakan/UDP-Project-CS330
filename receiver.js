@@ -48,8 +48,16 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
 
     `);
 
-    if(processedPackets[packetSequence]) // if duplicated packet
+    const [ackN, acknoledgmentPacket] = createPacket(0x02, Buffer.alloc(0), packetSequence) // Creating ACK packet
+
+    if(++processedPackets[packetSequence]) { // if duplicated packet
+        if(processedPackets[packetSequence] > 3) { // Re-transmit the ACK if sender send 3 duplicated packets
+            utils.log('Server', `Re-transmitted ACK${packetSequence} to ${rInfo.address}:${rInfo.port}`)
+            return server.send(acknoledgmentPacket, rInfo.port, rInfo.address);
+        }
+        
         return utils.log('Server', 'Packet is duplicated');
+    }
 
     switch(packetType) { // Packet types
         case 0x01: // Data Packet
@@ -103,11 +111,11 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
 
 
             // Sending Acknoledgment packet
-            const [ackN, acknoledgmentPacket] = createPacket(0x02, Buffer.alloc(0), packetSequence) // Creating ACK packet
             server.send(acknoledgmentPacket, rInfo.port, rInfo.address); // Sending the packet to sender
+            utils.log('Server', `Sent ACK${packetSequence} to ${rInfo.address}:${rInfo.port}`)
             
             if(delay) // Don't process packet unless it's during transmission
-                processedPackets[packetSequence] = true; // This sequence ID has been processed
+                processedPackets[packetSequence] = 1; // This sequence ID has been processed
 
             break;
         case 0x03: // Handshake
