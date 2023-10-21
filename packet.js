@@ -8,12 +8,6 @@ export function setSeq(init) {
     SEQs = init
 }
 
-let ACKs = 0;
-function getACK() {
-    return ACKs++;
-}
-
-
 
 /**
  * Create a packet for specified buffer
