@@ -63,7 +63,7 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
         case 0x01: // Data Packet
             // Unreliable channel (probability)
             if(Math.random() <= 0.1)
-                return utils.log('Server', `Packet #${packetSequence} is dropped...`)
+                return utils.log('Server', `(Unreliable-Channel) Packet #${packetSequence} is dropped...`)
 
             // Increase number of sent packets
             numberOfPackets++;
