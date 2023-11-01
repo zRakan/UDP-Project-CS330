@@ -79,9 +79,8 @@ export async function readFile(filePath) {
  */
 export function splitFile(buffer) {
     let bufferChunks = []; // Buffer chunks [Max-size: 500 bytes]
-    //createPacket(1, buffer);
-
     let currentChunk = 0;
+    
     while(true) {
         let chunk = Buffer.from(buffer).subarray(currentChunk * 491, ((currentChunk+1) * 491));
         let seqN;
@@ -92,8 +91,6 @@ export function splitFile(buffer) {
 
         bufferChunks.push({ seqN, packet: chunk }); // Push the sequenceNumber, chunk
         
-        //console.log(`#${currentChunk+1} Chunk: ${chunk.byteLength} bytes`);
-
         // Increase the chunk
         currentChunk++;
         
