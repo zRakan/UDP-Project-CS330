@@ -47,8 +47,7 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
         Packet Received:
             IP: ${rInfo.address}:${rInfo.port} [${rInfo.family}]
             Packet Type: ${packetType == 0x01 ? `Data Packet ${dataType == 0x01 ? '(Metadata)' : ''}` : 'Handshaking Packet'} ${packetType == 0x01 ? `(Seq #: ${packetSequence})` : ''}
-            Packet Size: ${packetSize} bytes
-            Header Size: ${headerSize} bytes
+            Packet Size: [${headerSize} + ${packetSize}] bytes
 
     `);
 
