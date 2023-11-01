@@ -1,8 +1,13 @@
+// Environment
+import dotenv from "dotenv";
+dotenv.config();
+const DEBUG = process.env.DEBUG == 'true'; // This only for debugging purposes
+
 // Import arguments initializer
 import { default as createArguments } from './initialize_arguments.js';
 
 // Import utils
-import { log, wait, readFile, splitFile, terminate } from './utils.js';
+import { log, wait, readFile, splitFile, terminate, createBar, incrementBar, stopBar } from './utils.js';
 
 // Import packet utilities
 import { createPacket, setSeq } from './packet.js';
@@ -11,6 +16,7 @@ import { createPacket, setSeq } from './packet.js';
 // Checking arguments
 const args = process.argv.slice(2);
 const [IP, rPORT, filePath] = createArguments(args); // Creating arguments based on command-line
+
 
 // Import datagram UDP socket
 import * as UDP from 'dgram';
@@ -26,7 +32,7 @@ let receivedAck = {}; // Acknowledgment received or not
 let isAccepted = false; // Handshake acception
 
 client.on('message', function(message, rInfo) { // Message event (This event will get all resposnes from receiver)
-    log('Client', `
+    if(DEBUG) log('Client', `
     Packet Received:
         IP: ${rInfo.address}:${rInfo.port} [${rInfo.family}]
 `);
@@ -37,7 +43,7 @@ client.on('message', function(message, rInfo) { // Message event (This event wil
         case 0x02: // Acknowledgement
             const packetSequence = message.subarray(4, 8).readInt16BE(); // Reading packet sequence number by Big-Endian
 
-            log('Client', `Received ACK${packetSequence} packet`);
+            if(DEBUG) log('Client', `Received ACK${packetSequence} packet`);
             receivedAck[packetSequence] = true;
             break;
 
@@ -45,7 +51,7 @@ client.on('message', function(message, rInfo) { // Message event (This event wil
             const initialSequence = message[1]; // This is the initial packet sequence received from our server
             setSeq(initialSequence);
             
-            log('Client', `Handshake successful, Initial Seq # ${initialSequence}`)
+            if(DEBUG) log('Client', `Handshake successful, Initial Seq # ${initialSequence}`)
     
             isAccepted = true; // Indicate handshake has been successfully established
             break;
@@ -106,6 +112,10 @@ let delay;
 // List all needed packets File metadata & content
 
 const packetList = [{ seqN: seq, packet: metadataPacket }, ...splitFile(fileContent)];
+const numberOfPackets = packetList.length;
+
+
+createBar(numberOfPackets);
 for(let currentPacket of packetList) {
     if(!delay) delay = new Date();
 
@@ -113,19 +123,21 @@ for(let currentPacket of packetList) {
     const interval = setInterval(function() {
         if(receivedAck[currentPacket.seqN]) return clearInterval(interval); // Ignore if received ACK
         client.send(currentPacket.packet, rPORT, IP); // Re-transmission the packet
-        log('Client', `Re-trasmitted #${currentPacket.seqN} packet...`)
+        if(DEBUG) log('Client', `Re-trasmitted #${currentPacket.seqN} packet...`)
 
     }, 1000);
 
-    if(!receivedAck[currentPacket.seqN]) log('Client', `Waiting for Acknowledgment ${currentPacket.seqN}...`);
+    if(!receivedAck[currentPacket.seqN] && DEBUG) log('Client', `Waiting for Acknowledgment ${currentPacket.seqN}...`);
     while(!receivedAck[currentPacket.seqN]) // Waiting until acknowledgment packet received
         await wait(0);
+
+    incrementBar();
 }
 
 // Display Statistics
 const seconds = (new Date().getTime() - delay.getTime()) / 1000;
-const numberOfPackets = packetList.length;
 
+stopBar()
 log('Client', `Finished uploading
 Statistics:
     Throughput: ${(numberOfPackets / seconds).toFixed(2)} packets per second [Sent: ${numberOfPackets} packet(s)]

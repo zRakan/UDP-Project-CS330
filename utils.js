@@ -81,10 +81,6 @@ export function splitFile(buffer) {
     let bufferChunks = []; // Buffer chunks [Max-size: 500 bytes]
     //createPacket(1, buffer);
 
-
-    console.log(`File splitter:
-Current file size: ${buffer.byteLength} bytes`)
-
     let currentChunk = 0;
     while(true) {
         let chunk = Buffer.from(buffer).subarray(currentChunk * 491, ((currentChunk+1) * 491));
@@ -162,4 +158,31 @@ function randomStr(length) {
     }
 
     return result;
+}
+
+
+/* Progress bar */
+import progressBar from 'cli-progress';
+import colors from 'ansi-colors';
+
+let currentBar;
+export function createBar(target) {
+    currentBar = new progressBar.SingleBar({
+        format: `Uploading: ${colors.magenta('{bar}')} {percentage}% | Duration: {duration_formatted} | ${colors.green('{value}')}/{total} Packet(s)`,
+        barCompleteChar: '\u2588',
+        barIncompleteChar: '\u2591',
+        hideCursor: true,
+        clearOnComplete: true,
+        fps: 60
+    });
+
+    currentBar.start(target, 0);
+}
+
+export function incrementBar() {
+    currentBar.increment()
+}
+
+export function stopBar() {
+    currentBar.stop();
 }
