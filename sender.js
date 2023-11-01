@@ -35,7 +35,7 @@ client.on('message', function(message, rInfo) { // Message event (This event wil
 
     switch(packetType) {
         case 0x02: // Acknowledgement
-            const packetSequence = message.subarray(3, 8).readInt16LE(0); // Reading packet sequence numer by Little-endian
+            const packetSequence = message.subarray(4, 8).readInt16BE(); // Reading packet sequence number by Big-Endian
 
             log('Client', `Received ACK${packetSequence} packet`);
             receivedAck[packetSequence] = true;
@@ -100,14 +100,17 @@ while(!receivedAck) {
 }*/
 
 
-
+// Statistics
+let delay;
 
 // List all needed packets File metadata & content
+
 const packetList = [{ seqN: seq, packet: metadataPacket }, ...splitFile(fileContent)];
 for(let currentPacket of packetList) {
-    client.send(currentPacket.packet, rPORT, IP);
+    if(!delay) delay = new Date();
 
-   const interval = setInterval(function() {
+    client.send(currentPacket.packet, rPORT, IP);
+    const interval = setInterval(function() {
         if(receivedAck[currentPacket.seqN]) return clearInterval(interval); // Ignore if received ACK
         client.send(currentPacket.packet, rPORT, IP); // Re-transmission the packet
         log('Client', `Re-trasmitted #${currentPacket.seqN} packet...`)
@@ -118,6 +121,18 @@ for(let currentPacket of packetList) {
     while(!receivedAck[currentPacket.seqN]) // Waiting until acknowledgment packet received
         await wait(0);
 }
+
+// Display Statistics
+const seconds = (new Date().getTime() - delay.getTime()) / 1000;
+const numberOfPackets = packetList.length;
+
+log('Client', `Finished uploading
+Statistics:
+    Throughput: ${(numberOfPackets / seconds).toFixed(2)} packets per second [Sent: ${numberOfPackets} packet(s)]
+    Delay: ${seconds} second(s)
+`)
+
+client.close(); // Close the connection/socket
 
 /*
     Testing Functionalities

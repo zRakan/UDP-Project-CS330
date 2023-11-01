@@ -1,15 +1,12 @@
 /* Packet Utilities */
 let SEQs = 0;
-function increaseSeq() {
-    return SEQs++;
-}
 
 /**
- * Returns last packet sequence created from "createPacket()"
- * @returns {Integer} Last packet sequence
+ * Increasing packet sequence
+ * @returns {Integer} Current sequence before incrementing
  */
-export function getSeq() {
-    return SEQs;
+function increaseSeq() {
+    return SEQs++;
 }
 
 /**
@@ -59,7 +56,7 @@ export function createPacket(type, buffer = Buffer.alloc(0), dataType) {
     headerPacket[0] = type; // Type of packet [Data, Ack, Handshaking]
     headerPacket[3] = headerSize; // Header size
     headerPacket.writeInt16BE(headerSize + buffer.byteLength, 1); // Appending data size [0...500]
-    headerPacket.writeInt16LE(seqN ? seqN : 0, 4); // Appending packet sequence
+    headerPacket.writeInt16BE(seqN ? seqN : 0, 4); // Appending packet sequence
     
     const finalBuffer = Buffer.concat([headerPacket, buffer]);
     return (seqN != undefined ? [ seqN, finalBuffer ] : finalBuffer);

@@ -24,20 +24,23 @@ server.on('error', function(err) {
 // Receive message(s) from client
 let processedPackets = {}; // Contains all processed packets { seqN: true|false }
 
-// Statistics
+/* Statistics
 let delay;
 let numberOfPackets = 0;
+*/
 
 server.on('message', function(message, rInfo) { // Event that triggered if there is a message from sender    
-    const messageHeader = message.subarray(0, 9); // Packet header
+    const packetHeader = message.subarray(0, 9); // Packet header
+    const packetContent = message.subarray(9); // Packet content
 
-    const messageContent = message.subarray(9); // Packet content
+    // Header Content
+    const packetType = packetHeader[0]; // Packet type [0x01, 0x02, 0x03] [Data, Ack, Handshake]
+    const dataType = packetHeader[8]; // This will only be used in "Data packet" (Metadata || Content)
 
-    const packetType = messageHeader[0]; // Packet type [0x01, 0x02, 0x03] [Data, Ack, Handshake]
-    const dataType = messageHeader[8]; // This will only be used in "Data packet" (Metadata || Content)
+    const packetSize = packetHeader.subarray(1, 3).readInt16BE(); // Packet Size (Big-Endian)
+    const headerSize = packetHeader[3]; // Packet header size [Fixed: 9 bytes]
 
-    const packetSize = messageHeader.subarray(1, 3).readInt16BE(0); // Packet Size (Big-Endian)
-    const packetSequence = messageHeader.subarray(3, 8).readInt16LE(0); // Packet sequence (Little-Endian)
+    const packetSequence = packetHeader.subarray(4, 8).readInt16BE(); // Packet sequence (Big-Endian)
 
     // Display Packet information
     utils.log('Server', `
@@ -45,19 +48,18 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
             IP: ${rInfo.address}:${rInfo.port} [${rInfo.family}]
             Packet Type: ${packetType == 0x01 ? `Data Packet ${dataType == 0x01 ? '(Metadata)' : ''}` : 'Handshaking Packet'} ${packetType == 0x01 ? `(Seq #: ${packetSequence})` : ''}
             Packet Size: ${packetSize} bytes
+            Header Size: ${headerSize} bytes
 
     `);
 
     const [ackN, acknoledgmentPacket] = createPacket(0x02, Buffer.alloc(0), packetSequence) // Creating ACK packet
 
-    if(++processedPackets[packetSequence]) { // if duplicated packet
-        if(processedPackets[packetSequence] > 3) { // Re-transmit the ACK if sender send 3 duplicated packets
-            utils.log('Server', `Re-transmitted ACK${packetSequence} to ${rInfo.address}:${rInfo.port}`)
-            return server.send(acknoledgmentPacket, rInfo.port, rInfo.address);
-        }
-        
-        return utils.log('Server', 'Packet is duplicated');
+    if(processedPackets[packetSequence]) { // if duplicated packet
+        utils.log('Server', `Packet is duplicated re-transmitted ACK${packetSequence} to ${rInfo.address}:${rInfo.port}`)
+        return server.send(acknoledgmentPacket, rInfo.port, rInfo.address);
     }
+
+    let ignoreProcess = false; // Indicate if need to ignore processing the packet or not
 
     switch(packetType) { // Packet types
         case 0x01: // Data Packet
@@ -65,18 +67,20 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
             if(Math.random() <= 0.1)
                 return utils.log('Server', `(Unreliable-Channel) Packet #${packetSequence} is dropped...`)
 
-            // Increase number of sent packets
+            /* Increase number of sent packets
             numberOfPackets++;
+
 
             if(!delay)
                 delay = new Date();
+            */
 
             if(dataType == 0x01) { // Metadata of file
-                const fileName_OFFSET = messageContent.indexOf('__FILENAME__'); // Getting the OFFSET of fileName
-                const fileSize_OFFSET = messageContent.indexOf('__FILESIZE__'); // Getting the OFFSET of fileSize
+                const fileName_OFFSET = packetContent.indexOf('__FILENAME__'); // Getting the OFFSET of fileName
+                const fileSize_OFFSET = packetContent.indexOf('__FILESIZE__'); // Getting the OFFSET of fileSize
 
-                const fileName = messageContent.subarray(fileName_OFFSET+12, fileSize_OFFSET).toString('utf8'); // Getting the file name
-                const fileSize = messageContent.subarray(fileSize_OFFSET+12).toString('utf8'); // Getting the file size
+                const fileName = packetContent.subarray(fileName_OFFSET+12, fileSize_OFFSET).toString('utf8'); // Getting the file name
+                const fileSize = packetContent.subarray(fileSize_OFFSET+12).toString('utf8'); // Getting the file size
 
                 // Display File metadata
                 utils.log('Server', `
@@ -89,23 +93,24 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
                 utils.startStream(fileName);
 
             } else {
-                utils.writingStream(messageContent); // Writing stream file
+                utils.writingStream(packetContent); // Writing stream file
 
                 if(dataType == 0x02) { // Stop writing stream file
                     utils.closeStream();
-                    const seconds = (new Date().getTime() - delay.getTime()) / 1000;
                     
 
-                    // Display Finished
-                    utils.log('Server', `Finished uploading
+                    /* Display Finished
+                    const seconds = (new Date().getTime() - delay.getTime()) / 1000;
+                    utils.log('Server', `Finished receiving
     Statistics:
         Throughput: ${(numberOfPackets / seconds).toFixed(2)} packets per second [Sent: ${numberOfPackets} packet(s)]
         Delay: ${seconds} second(s)
-`)
+`)*/
                     
                     processedPackets = {}; // Reset processed packets
-                    delay = null; // Reset delay
-                    numberOfPackets = 0; // Reset packets counter
+                    ignoreProcess = true;
+                    //delay = null; // Reset delay
+                    //numberOfPackets = 0; // Reset packets counter
                 }
             }
 
@@ -114,8 +119,8 @@ server.on('message', function(message, rInfo) { // Event that triggered if there
             server.send(acknoledgmentPacket, rInfo.port, rInfo.address); // Sending the packet to sender
             utils.log('Server', `Sent ACK${packetSequence} to ${rInfo.address}:${rInfo.port}`)
             
-            if(delay) // Don't process packet unless it's during transmission
-                processedPackets[packetSequence] = 1; // This sequence ID has been processed
+            if(!ignoreProcess) // Don't process the sequence if it's the last seq
+                processedPackets[packetSequence] = true; // This sequence ID has been processed
 
             break;
         case 0x03: // Handshake
