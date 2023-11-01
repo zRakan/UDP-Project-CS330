@@ -1,9 +1,21 @@
 /* Packet Utilities */
 let SEQs = 0;
-function getSeq() {
+function increaseSeq() {
     return SEQs++;
 }
 
+/**
+ * Returns last packet sequence created from "createPacket()"
+ * @returns {Integer} Last packet sequence
+ */
+export function getSeq() {
+    return SEQs;
+}
+
+/**
+ * Set packet sequence (Used in handshake establishment)
+ * @param {Integer} init - Packet sequence from handshake packet 
+ */
 export function setSeq(init) {
     SEQs = init
 }
@@ -25,7 +37,9 @@ Structure of Packet Header
                       [Data, Ack, HandShaking]
 
     Packet size[1,2] = [0...500]
-    Packet seq[3, 7] = [0x00...0xFFFFFFFFFF]
+    Header size[3] = [0...255]
+    
+    Packet seq[4, 7] = [0x00...0xFFFFFFFF]
 
     Packet dataType[8] = [0x00, 0x01, 0x02]
                          [noop, Metadata, end]
@@ -36,15 +50,16 @@ export function createPacket(type, buffer = Buffer.alloc(0), dataType) {
     let seqN;
 
     if(type == 0x01) { // Data packet
-        seqN = getSeq();
+        seqN = increaseSeq();
         headerPacket[8] = dataType;
     } else if(type == 0x02) // Acnkowledgement Packet
         seqN = dataType // Set seq based on sender packet
 
     // Set Header of packet
     headerPacket[0] = type; // Type of packet [Data, Ack, Handshaking]
+    headerPacket[3] = headerSize; // Header size
     headerPacket.writeInt16BE(headerSize + buffer.byteLength, 1); // Appending data size [0...500]
-    headerPacket.writeInt16LE(seqN ? seqN : 0, 3); // Appending packet sequence
+    headerPacket.writeInt16LE(seqN ? seqN : 0, 4); // Appending packet sequence
     
     const finalBuffer = Buffer.concat([headerPacket, buffer]);
     return (seqN != undefined ? [ seqN, finalBuffer ] : finalBuffer);
