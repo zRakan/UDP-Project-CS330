@@ -115,7 +115,7 @@ const packetList = [{ seqN: seq, packet: metadataPacket }, ...splitFile(fileCont
 const numberOfPackets = packetList.length;
 
 
-createBar(numberOfPackets);
+if(!DEBUG) createBar(numberOfPackets);
 for(let currentPacket of packetList) {
     if(!delay) delay = new Date();
 
@@ -131,13 +131,13 @@ for(let currentPacket of packetList) {
     while(!receivedAck[currentPacket.seqN]) // Waiting until acknowledgment packet received
         await wait(0);
 
-    incrementBar();
+    if(!DEBUG) incrementBar();
 }
 
 // Display Statistics
 const seconds = (new Date().getTime() - delay.getTime()) / 1000;
 
-stopBar()
+if(!DEBUG) stopBar()
 log('Client', `Finished uploading
 Statistics:
     Throughput: ${(numberOfPackets / seconds).toFixed(2)} packets per second [Sent: ${numberOfPackets} packet(s)]
