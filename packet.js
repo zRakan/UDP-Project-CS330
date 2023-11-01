@@ -23,7 +23,7 @@ export function setSeq(init) {
  * @param {Integer} type - [1,2,3] ==> [Data, Ack, Handshaking] 
  * @param {Buffer} buffer - The buffer data
  * @param {String} dataType - [Required param if type == 1] The data type
- * @returns {Buffer} Packet header & packet data
+ * @returns {Buffer} Packet header & Packet data
  */
 
 /* 
@@ -33,13 +33,13 @@ Structure of Packet Header
     Packet types[0] = [0x01, 0x02, 0x03]
                       [Data, Ack, HandShaking]
 
-    Packet size[1,2] = [0...500]
+    Data size[1,2] = [0...500]
     Header size[3] = [0...255]
     
     Packet seq[4, 7] = [0x00...0xFFFFFFFF]
 
     Packet dataType[8] = [0x00, 0x01, 0x02]
-                         [noop, Metadata, end]
+                         [NOOP, Metadata, end]
 */
 const headerSize = 9; // Header size
 export function createPacket(type, buffer = Buffer.alloc(0), dataType) {
@@ -55,7 +55,7 @@ export function createPacket(type, buffer = Buffer.alloc(0), dataType) {
     // Set Header of packet
     headerPacket[0] = type; // Type of packet [Data, Ack, Handshaking]
     headerPacket[3] = headerSize; // Header size
-    headerPacket.writeInt16BE(headerSize + buffer.byteLength, 1); // Appending data size [0...500]
+    headerPacket.writeInt16BE(buffer.byteLength, 1); // Appending data size [0...500]
     headerPacket.writeInt16BE(seqN ? seqN : 0, 4); // Appending packet sequence
     
     const finalBuffer = Buffer.concat([headerPacket, buffer]);
